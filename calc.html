@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Preg Calc</title>
+    <style media="screen">
+      body {
+        font-family: verdana;
+      }
+      .seccion {
+        display: inline-block;
+        background-color: #ECE0E9;
+        margin: 20px;
+        padding: 20px;
+        border-radius:20px;
+      }
+      .info {
+        float: right;
+        font-weight: bold;
+      }
+      #log {
+        font-family: consolas;
+        background-color: #ECE0E9;
+        padding: 20px;
+        border-radius: 20px;
+        display: block;
+      }
+      input[type="button"] {
+        background-color: #9C2B82;
+        color:white;
+        border: 0px;
+        border-radius:10px;
+        padding: 10px;
+      }
+      input[type="button"]:hover {
+        background-color: #C043A3;
+      }
+      .txt {
+        border-radius: 10px;
+        border: solid grey 1px;
+        padding: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Calculadora de embarazo para roles</h1>
+    <span class="seccion">
+      <h2>Datos de la chica</h2>
+      dia del mes: (min 1, max 28) <input type="number" id="dia" min="1" max="28" value=8 class="txt"><br>
+      en celo: <input type="checkbox" id="celo"><input type="button" value="calcular" onclick="actualizar()" class="txt"><br>
+      estado: <span id="est" class="info">.</span><br>
+      prob. embarazo: <span id="prob" class="info">.</span><br>
+    </span>
+
+    <span class="seccion">
+      <h2>Datos sexuales</h2>
+      cant. semen (ml): (min 2, max 10) <input type="number" id="semen" min="2" max="10" value="3" class="txt"><br>
+      <input type="text" id="nombre" placeholder="nombre (opcional)" class="txt"><br><br>
+      <input type="button" value="follar sin condon" onclick="cumout()">
+      <input type="button" value="venirse adentro" onclick="cumin()">
+      <input type="button" value="directo al utero!" onclick="cumx()"><br>
+
+    </span>
+    <h2>Log:</h2>
+    <div id="log">
+    </div>
+  </body>
+  <script>
+    var prob = document.getElementById("prob")
+    var dia = document.getElementById("dia")
+    var log = document.getElementById("log")
+    var celo = document.getElementById("celo")
+    var nombre = document.getElementById("nombre")
+    var semen = document.getElementById("semen")
+
+    var a = []
+    for (i=0;i<29;i++) {
+      a.push(0)
+    }
+    a[0] = "X"
+    a[14] = 1
+    function rellenar(dia1,dia2,prob1,prob2,array) {
+      var cantDias = dia2-dia1
+      var cantProb = prob2-prob1
+      var factor = cantProb/cantDias
+      var factorActual = 0
+      for (i=dia1;i<=dia2;i++) {
+        array[i] = prob1 + factorActual
+        factorActual += factor
+      }
+    }
+
+    rellenar(6,11,0,50,a)
+    rellenar(11,14,60,100,a)
+    rellenar(14,16,100,60,a)
+    rellenar(16,18,60,0,a)
+
+    function getProb(array,p_dia,celo) {
+      factorCelo = 0
+      if (celo) {
+        factorCelo = 1.66
+      }
+      res = (array[p_dia]/100)*0.22* (1+(factorCelo))
+      return res
+    }
+    function getEstado(p_dia) {
+        if (p_dia <= 5) {
+          return "sangrado"
+        } else if ((p_dia>5) && (p_dia<=11)) {
+          return "inseguro"
+        } else if ((p_dia>11) && (p_dia<= 13)) {
+          return "FERTIL"
+        } else if (p_dia== 14) {
+          return "OVULANDO!!!"
+        } else if ((p_dia>14) && (p_dia<= 16)) {
+          return "FERTIL"
+        } else {
+          return "seguro"
+        }
+    }
+    function actualizar() {
+      var check = celo.checked
+      est.innerHTML = getEstado(dia.value)
+      prob.innerHTML = Math.round(getProb(a,dia.value,check)*1000)/10 + " %"
+    }
+
+    function simular(prob,potenciaAcabada,cantSemen) {
+      var rnd = Math.random()
+      const std = 3
+      var factorCantSemen = (std - (std - cantSemen))/std
+      var preg = prob*potenciaAcabada*factorCantSemen
+      if (rnd<=preg) {
+        return "<b>Te han preñao! FELICITACIONES!</b>"
+      } else {
+        return "no ha pasado nada."
+      }
+    }
+    function cum(opcion) {
+      var factorAcabada = 0
+      var textoAcabada = ""
+      if (opcion=="out") {
+        factorAcabada=0.05
+        textoAcabada = "acabo afuera"
+      } else if (opcion=="in") {
+        factorAcabada=0.7
+        textoAcabada = "acabo adentro"
+      } else if (opcion=="uterus") {
+        factorAcabada=1
+        textoAcabada = "relleno el utero"
+      }
+      var nom = "Un cliente"
+      if (nombre.value!="") {
+        nom = nombre.value
+      }
+      var resultado = simular(getProb(a,dia.value,celo.checked),factorAcabada,semen.value)
+      var texto = nom + " te "+textoAcabada+", " +resultado+"<br>"
+      log.innerHTML += texto
+    }
+
+    function cumout() {
+      cum("out")
+    }
+    function cumin() {
+      cum("in")
+    }
+    function cumx() {
+      cum("uterus")
+    }
+  </script>
+</html>
